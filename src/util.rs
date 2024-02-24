@@ -5,7 +5,8 @@ pub struct StatusInfo {
     pub work_tree: String,
     pub remote_url: String,
     pub status: String,
-    pub status_lines: Vec<String>,
+    pub status_entries: Vec<(String, String)>,
+    pub entry_type_counts: Vec<i32>,
     pub table: Table,
     pub summary: String,
     pub summary_short: String,
@@ -17,7 +18,8 @@ impl Default for StatusInfo {
             work_tree: String::new(),
             remote_url: String::new(),
             status: String::new(),
-            status_lines: vec![],
+            status_entries: vec![],
+            entry_type_counts: vec![],
             table: Table::new(),
             summary: String::new(),
             summary_short: String::new(),
@@ -107,7 +109,7 @@ pub mod functions {
         }
     }
 
-    pub fn validate_args(args: &(String, String), valid_inputs: &Vec<&str>) -> bool {
+    pub fn validate_args(args: &(String, String), valid_inputs: &[&str]) -> bool {
         let mut valid_input_split: Vec<String> = vec![];
         for c in valid_inputs[0].chars() {
             let mut s = c.to_string();
@@ -117,7 +119,7 @@ pub mod functions {
             }
             valid_input_split.push(s);
         }
-        let long_input_split = valid_inputs[1].split(",");
+        let long_input_split = valid_inputs[1].split(',');
         for input in long_input_split {
             valid_input_split.push(input.trim().to_string());
         }
@@ -126,9 +128,9 @@ pub mod functions {
         let mut requires_input = false;
         for mut input in valid_input_split {
             requires_input = false;
-            if input.ends_with(";") {
+            if input.ends_with(';') {
                 input = input[0..input.len() - 1].to_string();
-            } else if input.ends_with(":") {
+            } else if input.ends_with(':') {
                 input = input[0..input.len() - 1].to_string();
                 requires_input = true;
             }
@@ -137,10 +139,10 @@ pub mod functions {
                 break;
             }
         }
-        !(!matched || (requires_input && args.1 == ""))
+        !(!matched || (requires_input && args.1.is_empty()))
     }
 
-    pub fn sanitise_args(args: &Vec<String>) -> (String, String) {
+    pub fn sanitise_args(args: &[String]) -> (String, String) {
         let mut j = 1;
         let mut cmd: String = args[1].trim().to_string();
         if cmd.len() > 3 {
